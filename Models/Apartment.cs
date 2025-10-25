@@ -7,7 +7,7 @@ namespace ApartmentManagement.Model
     {
         public int Id { get; set; }
 
-        public string? Title { get; set; }    // Daire adı / kısa açıklama (örn: "A Blok 3.Kat 12 No")
+        public string Title { get; set; }    // Daire adı / kısa açıklama (örn: "A Blok 3.Kat 12 No")
 
         [MaxLength(20)]
         public string? Block { get; set; }           // A/B/C blok gibi (opsiyonel)
