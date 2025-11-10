@@ -9,7 +9,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<ApartmentService>(); // <-- EKLENEN SATIR
+builder.Services.AddScoped<ApartmentService>(); 
 
 var app = builder.Build();
 
