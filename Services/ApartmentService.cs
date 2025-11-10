@@ -54,5 +54,10 @@ namespace ApartmentManagement.Services
             await _db.SaveChangesAsync();
             return true;
         }
+
+        internal async Task<IEnumerable<object>> GetAllUsersAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

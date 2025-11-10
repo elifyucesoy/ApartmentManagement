@@ -9,13 +9,15 @@ using System.Text.Json;
 
 namespace ApartmentManagement.Controllers
 {
-    public class ApartmentsController(ApartmentService apartmentService, ILogger<ApartmentsController> logger) : Controller
+    public class ApartmentsController(ApartmentService apartmentService, UserService userService, ILogger<ApartmentsController> logger) : Controller
     {
         private readonly ApartmentService _apartmentService = apartmentService;
+        private readonly UserService _userService = userService;
+        private readonly ILogger<ApartmentsController> _logger = logger;
 
         public async Task<IActionResult> Index()
         {
-            var list = await apartmentService.GetAllAsync();
+            var list = await _apartmentService.GetAllAsync();
             return View(list);
         }
 
@@ -35,11 +37,29 @@ namespace ApartmentManagement.Controllers
                     block = apartment.Block,
                     number = apartment.Number,
                     floor = apartment.Floor,
+                    title = apartment.Title,
                     isOccupied = apartment.IsOccupied,
+                    monthlyFee = apartment.MonthlyFee,
+                    owner = apartment.User != null ? ($"{apartment.User.FirstName} {apartment.User.LastName}").Trim() : null,
                     createdAt = apartment.CreatedAt
                 };
 
                 return Json(new { success = true, data = apartmentData });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUsers()
+        {
+            try
+            {
+                var users = await _userService.GetAllAsync();
+                var userList = users.Select(u => new { id = u.Id, name = u.FirstName + " " + u.LastName }).ToList();
+                return Json(userList);
             }
             catch (Exception ex)
             {
@@ -56,7 +76,6 @@ namespace ApartmentManagement.Controllers
                     return Json(new { success = false, message = "Please check the form data and try again." });
 
                 apartment.CreatedAt = DateTime.Now;
-                apartment.UserId = 1;
                 var result = await _apartmentService.CreateAsync(apartment);
 
                 return Json(new { success = true, message = "Apartment created successfully.", data = result });

@@ -49,7 +49,12 @@
             </select>
         </div>
     </div>
-
+    <div class="mb-3">
+        <label for="UserId" class="form-label">Owner</label>
+        <select id="UserId" name="UserId" class="form-select">
+            <option value="">-- Select owner --</option>
+        </select>
+    </div>
     <!-- Table Section -->
     <div class="row">
         <div class="col-12">
@@ -299,41 +304,44 @@
         try {
            const response = await fetch(`/Apartments/GetApartment?id=${id}`);
             const result = await response.json();
-
+          // debugger
             if (result.success) {
-                const apartment = result.data;
-                document.getElementById('apartmentId').value = apartment.id;
-                document.getElementById('block').value = apartment.block;
-                document.getElementById('number').value = apartment.number;
-                document.getElementById('floor').value = apartment.floor;
-                document.getElementById('type').value = apartment.type;
-                document.getElementById('owner').value = apartment.owner || '';
-                document.getElementById('monthlyDues').value = apartment.monthlyDues;
-                document.getElementById('isOccupied').checked = apartment.isOccupied;
+                const apartment = result.data || {};
+                document.getElementById('apartmentId').value = apartment.id ?? '';
+                document.getElementById('block').value = apartment.block ?? '';
+                document.getElementById('number').value = apartment.number ?? '';
+                document.getElementById('floor').value = apartment.floor ?? '';
+                // map server 'title' -> UI 'type'
+                document.getElementById('type').value = apartment.title ?? '';
+                document.getElementById('owner').value = apartment.owner ?? '';
+                // map server 'monthlyFee' -> UI 'monthlyDues'
+                document.getElementById('monthlyDues').value = (apartment.monthlyFee !== undefined && apartment.monthlyFee !== null) ? apartment.monthlyFee : '';
+                document.getElementById('isOccupied').checked = !!apartment.isOccupied;
 
                 apartmentModal.show();
             } else {
                 showAlert('error', result.message);
             }
         } catch (error) {
-            debugger
+            console.error('editApartment error:', error);
             showAlert('error', 'An error occurred while loading apartment data');
         }
     }
 
     async function saveApartment() {
-        debugger;
         const form = document.getElementById('apartmentForm');
 
+        const monthlyRaw = document.getElementById('monthlyDues').value;
 
         const formData = {
             Id: parseInt(document.getElementById('apartmentId').value) || 0,
-            Block: document.getElementById('block').value,
-            Number: parseInt(document.getElementById('number').value),
-            Floor: parseInt(document.getElementById('floor').value),
-            Type: document.getElementById('type').value,
-            Owner: document.getElementById('owner').value,
-            MonthlyDues: parseFloat(document.getElementById('monthlyDues').value),
+            Block: document.getElementById('block').value || null,
+            Number: document.getElementById('number').value === '' ? null : parseInt(document.getElementById('number').value),
+            Floor: document.getElementById('floor').value === '' ? null : parseInt(document.getElementById('floor').value),
+            // map UI 'type' -> model 'Title'
+            Title: document.getElementById('type').value || null,
+            // send model property name 'MonthlyFee'
+            MonthlyFee: monthlyRaw === '' ? null : parseFloat(monthlyRaw),
             IsOccupied: document.getElementById('isOccupied').checked
         };
 
@@ -358,7 +366,7 @@
                 showAlert('error', result.message);
             }
         } catch (error) {
-            debugger
+            console.error('saveApartment error:', error);
             showAlert('error', 'An error occurred while saving the apartment');
         }
     }
@@ -392,7 +400,7 @@
             const result = await response.json();
 
             if (result.success) {
-                const apartment = result.data;
+                const apartment = result.data || {};
                 const statusBadge = apartment.isOccupied
                     ? '<span class="badge bg-success"><i class="bi bi-house-fill me-1"></i>Occupied</span>'
                     : '<span class="badge bg-secondary"><i class="bi bi-house me-1"></i>Vacant</span>';
@@ -413,7 +421,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted small">Type</label>
-                            <p class="fw-semibold">${apartment.type}</p>
+                            <p class="fw-semibold">${apartment.title || ''}</p>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted small">Status</label>
@@ -425,7 +433,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="text-muted small">Monthly Dues</label>
-                            <p class="fw-semibold">$${apartment.monthlyDues}</p>
+                            <p class="fw-semibold">$${apartment.monthlyFee ?? ''}</p>
                         </div>
                     </div>
                 `;
@@ -435,7 +443,7 @@
                 showAlert('error', result.message);
             }
         } catch (error) {
-            debugger;
+            console.error('viewApartment error:', error);
             showAlert('error', 'An error occurred while loading apartment details');
         }
     }
